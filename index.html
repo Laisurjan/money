@@ -1,0 +1,889 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>零用錢（月）＋電腦時間（週）</title>
+  <meta name="color-scheme" content="light dark" />
+  <style>
+    :root{
+      --bg1:#f7f7fb;
+      --bg2:#eef0ff;
+      --card:rgba(255,255,255,.74);
+      --card2:rgba(255,255,255,.52);
+      --ink:#0b1220;
+      --muted:rgba(11,18,32,.62);
+      --line:rgba(15,23,42,.12);
+      --shadow: 0 20px 50px rgba(0,0,0,.12);
+      --shadow2: 0 10px 24px rgba(0,0,0,.10);
+      --radius: 22px;
+      --radius2: 16px;
+      --chip: rgba(37,99,235,.10);
+      --focus: 0 0 0 4px rgba(37,99,235,.18);
+      --ok:#16a34a;
+      --warn:#f59e0b;
+      --danger:#ef4444;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "SF Pro Display","SF Pro Text",
+              "Noto Sans TC","PingFang TC","Microsoft JhengHei", system-ui, sans-serif;
+    }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg1:#0b1020;
+        --bg2:#0a1a2b;
+        --card:rgba(18,25,45,.74);
+        --card2:rgba(18,25,45,.52);
+        --ink:#eaf0ff;
+        --muted:rgba(234,240,255,.62);
+        --line:rgba(148,163,184,.18);
+        --shadow: 0 20px 50px rgba(0,0,0,.45);
+        --shadow2: 0 10px 24px rgba(0,0,0,.35);
+        --chip: rgba(96,165,250,.14);
+        --focus: 0 0 0 4px rgba(96,165,250,.18);
+      }
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--ink);
+      background:
+        radial-gradient(1200px 700px at 20% 10%, rgba(99,102,241,.22), transparent 55%),
+        radial-gradient(900px 600px at 80% 20%, rgba(37,99,235,.18), transparent 55%),
+        radial-gradient(900px 650px at 50% 95%, rgba(16,185,129,.12), transparent 55%),
+        linear-gradient(160deg, var(--bg1), var(--bg2));
+      padding: 28px 16px 36px;
+    }
+
+    .wrap{max-width:1080px; margin:0 auto;}
+    .topbar{display:flex; gap:14px; align-items:flex-start; justify-content:space-between; margin-bottom:16px;}
+    .brand{display:flex; flex-direction:column; gap:6px;}
+    .brand h1{margin:0; font-size: clamp(20px, 2.2vw, 28px); letter-spacing:.2px;}
+    .brand .sub{color:var(--muted); font-size: 13px; line-height:1.35;}
+
+    .pillrow{display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:flex-end;}
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow2);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      font-size: 13px;
+      color: var(--muted);
+      white-space:nowrap;
+    }
+    .pill strong{color:var(--ink); font-weight:900;}
+
+    .grid{display:grid; grid-template-columns: 1.05fr .95fr; gap:16px;}
+    @media (max-width: 920px){
+      .grid{grid-template-columns:1fr;}
+      .pillrow{justify-content:flex-start;}
+    }
+
+    .card{
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding: 16px 18px 12px;
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.16), transparent);
+    }
+    .card .hd h2{margin:0; font-size: 16px; letter-spacing:.2px;}
+    .card .hd .hint{margin-top:4px; color: var(--muted); font-size: 12px; line-height:1.35;}
+    .card .bd{ padding: 16px 18px 18px; }
+
+    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+    .row + .row{margin-top:12px;}
+
+    .btn{
+      border:1px solid var(--line);
+      background: var(--card2);
+      color: var(--ink);
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor:pointer;
+      font-weight:900;
+      font-size: 13px;
+      transition: transform .06s ease;
+    }
+    .btn:active{transform: translateY(1px);}
+    .btn.primary{background: rgba(37,99,235,.18); border-color: rgba(37,99,235,.32);}
+    .btn.ok{background: rgba(22,163,74,.18); border-color: rgba(22,163,74,.30);}
+    .btn.warn{background: rgba(245,158,11,.16); border-color: rgba(245,158,11,.30);}
+    .btn:focus{outline:none; box-shadow: var(--focus);}
+    .btn[disabled]{opacity:.55; cursor:not-allowed;}
+
+    .field{display:flex; flex-direction:column; gap:6px; min-width: 190px; flex:1;}
+    label{font-size:12px; color:var(--muted);}
+    input[type="password"], input[type="number"], select, input[type="text"]{
+      width:100%;
+      padding: 11px 12px;
+      border-radius: 14px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.55);
+      color: var(--ink);
+      font-size: 14px;
+      outline:none;
+    }
+    @media (prefers-color-scheme: dark){
+      input[type="password"], input[type="number"], select, input[type="text"]{background: rgba(10,16,32,.55);}
+    }
+    input:focus, select:focus{box-shadow: var(--focus); border-color: rgba(37,99,235,.40);}
+
+    .divider{height:1px; background:var(--line); margin: 12px 0;}
+    .fine{color:var(--muted); font-size:12px; line-height:1.45;}
+    .mono{font-family:var(--mono);}
+    .badge{
+      display:inline-flex; align-items:center; gap:6px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: var(--chip);
+      border: 1px solid rgba(37,99,235,.22);
+      color: var(--ink);
+      font-size: 12px;
+      font-weight:950;
+      white-space:nowrap;
+    }
+    .okTxt{color: var(--ok); font-weight:950;}
+    .warnTxt{color: var(--warn); font-weight:950;}
+    .dangerTxt{color: var(--danger); font-weight:950;}
+
+    .list{display:flex; flex-direction:column; gap:10px;}
+    .item{
+      border: 1px solid var(--line);
+      border-radius: var(--radius2);
+      background: rgba(255,255,255,.46);
+      padding: 12px 12px;
+      display:flex; gap:10px; align-items:flex-start; justify-content:space-between;
+    }
+    @media (prefers-color-scheme: dark){ .item{background: rgba(10,16,32,.38);} }
+    .item .left{display:flex; flex-direction:column; gap:4px; min-width:0; flex:1;}
+    .item .title{font-weight:950; font-size:14px;}
+    .item .desc{color:var(--muted); font-size:12px; line-height:1.35;}
+    .item .right{display:flex; align-items:center; gap:8px; flex-shrink:0;}
+
+    .toggle{display:inline-flex; align-items:center; gap:8px; user-select:none; cursor:pointer; color: var(--muted); font-size: 13px; white-space:nowrap;}
+    .switch{
+      width:44px; height:26px; border-radius: 999px;
+      background: rgba(148,163,184,.25);
+      border: 1px solid var(--line);
+      position:relative; flex-shrink:0;
+      transition: background .15s ease;
+    }
+    .switch::after{
+      content:""; width:22px; height:22px; border-radius: 999px;
+      background: rgba(255,255,255,.92);
+      position:absolute; top:1px; left:1px;
+      transition: transform .15s ease;
+      box-shadow: 0 6px 12px rgba(0,0,0,.18);
+    }
+    .toggle input{display:none;}
+    .toggle input:checked + .switch{background: rgba(22,163,74,.22); border-color: rgba(22,163,74,.30);}
+    .toggle input:checked + .switch::after{ transform: translateX(18px); }
+
+    .kpi{display:grid; grid-template-columns: 1fr 1fr; gap:12px;}
+    @media (max-width: 520px){ .kpi{grid-template-columns:1fr;} }
+    .kpi .box{
+      border:1px solid var(--line);
+      border-radius: var(--radius2);
+      background: rgba(255,255,255,.46);
+      padding: 12px 12px;
+    }
+    @media (prefers-color-scheme: dark){ .kpi .box{background: rgba(10,16,32,.38);} }
+    .kpi .cap{color:var(--muted); font-size:12px;}
+    .kpi .val{margin-top:6px; font-size: 22px; font-weight: 980; letter-spacing:.2px; font-variant-numeric: tabular-nums;}
+
+    /* ✅只鎖「可編輯內容」：週次/孩子切換永遠能動 */
+    .editLocked{opacity:.96;}
+    .editLocked .lockable{pointer-events:none;}
+    .editLocked .toggle{opacity:.65;}
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">
+      <h1>零用錢（月）＋電腦時間（週）</h1>
+      <div class="sub">切換週次會同步切到該週所屬月份：零用錢看「月累計」，電腦時間看「週規則」。(｀・ω・´)</div>
+    </div>
+    <div class="pillrow">
+      <div class="pill"><span>月份：</span><strong id="monthKeyBadge">-</strong></div>
+      <div class="pill"><span>週次：</span><strong id="weekKeyBadge">-</strong></div>
+      <div class="pill"><span>本週：</span><strong id="thisRange">-</strong></div>
+      <div class="pill"><span>編輯：</span><strong id="editState">鎖定</strong></div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- 左：控制與輸入 -->
+    <section class="card">
+      <div class="hd">
+        <div>
+          <h2>週次、月份與填寫</h2>
+          <div class="hint">房間髒亂＝月累計；太晚睡覺＝當週天數（一天 -50）。</div>
+        </div>
+        <div class="row" style="gap:8px;">
+          <button class="btn" id="btnPrevWeek" type="button">← 上一週</button>
+          <button class="btn" id="btnNextWeek" type="button">下一週 →</button>
+        </div>
+      </div>
+
+      <div class="bd">
+        <div class="row">
+          <div class="field">
+            <label>孩子</label>
+            <select id="childSelect">
+              <option value="xuan">宣</option>
+              <option value="cheng">澄</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>發放週期</label>
+            <input type="text" value="零用錢：每月發放（基本 1000）" disabled />
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- 解鎖 -->
+        <div class="row">
+          <div class="field" style="min-width:220px;">
+            <label>編輯解鎖（輸入密碼才可修改）</label>
+            <input id="pwInput" type="password" inputmode="numeric" autocomplete="off" placeholder="輸入解鎖" />
+          </div>
+          <div class="row" style="gap:8px;">
+            <button class="btn ok" id="btnUnlock" type="button">解鎖</button>
+            <button class="btn warn" id="btnLock" type="button">鎖回去</button>
+          </div>
+          <div id="msg" class="fine"></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- ✅編輯區 -->
+        <div id="editArea" class="editLocked">
+          <div class="fine">
+            <span class="badge">提示</span>
+            <span id="lockHint">目前鎖定：只能觀看。要修改請輸入密碼解鎖。</span>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="fine"><span class="badge">月累計</span> <span class="mono" id="monthLine">-</span></div>
+          <div class="list lockable" id="monthList" style="margin-top:10px;"></div>
+
+          <div class="divider"></div>
+
+          <div class="fine"><span class="badge">週項目</span> <span class="mono" id="weekLine">-</span></div>
+          <div class="list lockable" id="weekList" style="margin-top:10px;"></div>
+
+          <div class="divider"></div>
+
+          <div class="row" style="justify-content:space-between;">
+            <div class="fine">
+              <span class="badge">自動保存</span>
+              修改後會存在此瀏覽器本機（localStorage）。
+            </div>
+            <button class="btn primary lockable" id="btnCopySummary" type="button">複製摘要</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 右：結果 -->
+    <section class="card">
+      <div class="hd">
+        <div>
+          <h2>結果（同時顯示月與週）</h2>
+          <div class="hint">月：零用錢（當月累計）｜週：電腦時間（當週規則）。</div>
+        </div>
+        <span class="badge mono" id="kidBadge">-</span>
+      </div>
+
+      <div class="bd">
+        <div class="kpi">
+          <div class="box">
+            <div class="cap">下月零用錢（總計）</div>
+            <div class="val" id="totalMoney">-</div>
+            <div class="fine" id="periodNote">-</div>
+          </div>
+          <div class="box">
+            <div class="cap">下週電腦時間（平均/天）</div>
+            <div class="val" id="pcTime">-</div>
+            <div class="fine" id="pcRuleNote">-</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="fine">
+          <div class="badge">連動說明</div>
+          <div class="mono" style="margin-top:8px;" id="linkLine">-</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div id="breakdown"></div>
+      </div>
+    </section>
+  </div>
+
+  <div style="margin-top:14px;" class="fine">
+    ※ 本頁不提供「清除全部」功能。若真要重來，請用瀏覽器清除此頁的本機資料。
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const EDIT_PASSWORD = "6689";
+  const STORE_KEY = "allowance_app_v4_month_week_linked";
+
+  const $ = (sel) => document.querySelector(sel);
+
+  // UI
+  const monthKeyBadge = $("#monthKeyBadge");
+  const weekKeyBadge  = $("#weekKeyBadge");
+  const thisRange     = $("#thisRange");
+  const editState     = $("#editState");
+
+  const btnPrevWeek   = $("#btnPrevWeek");
+  const btnNextWeek   = $("#btnNextWeek");
+
+  const childSelect   = $("#childSelect");
+
+  const pwInput       = $("#pwInput");
+  const btnUnlock     = $("#btnUnlock");
+  const btnLock       = $("#btnLock");
+  const msg           = $("#msg");
+
+  const editArea      = $("#editArea");
+  const lockHint      = $("#lockHint");
+
+  const monthLine     = $("#monthLine");
+  const weekLine      = $("#weekLine");
+  const monthList     = $("#monthList");
+  const weekList      = $("#weekList");
+  const btnCopySummary= $("#btnCopySummary");
+
+  const kidBadge      = $("#kidBadge");
+  const totalMoney    = $("#totalMoney");
+  const pcTime        = $("#pcTime");
+  const pcRuleNote    = $("#pcRuleNote");
+  const periodNote    = $("#periodNote");
+  const linkLine      = $("#linkLine");
+  const breakdown     = $("#breakdown");
+
+  // helpers
+  const pad2 = (n) => String(n).padStart(2,"0");
+  const fmt  = (d) => `${d.getFullYear()}/${pad2(d.getMonth()+1)}/${pad2(d.getDate())}`;
+
+  const startOfWeek = (date) => {
+    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const day = d.getDay();
+    const diff = (day === 0 ? -6 : 1 - day);
+    d.setDate(d.getDate() + diff);
+    d.setHours(0,0,0,0);
+    return d;
+  };
+  const endOfWeek = (monday) => {
+    const d = new Date(monday);
+    d.setDate(d.getDate() + 6);
+    return d;
+  };
+  const isoWeekKey = (monday) => {
+    const d = new Date(Date.UTC(monday.getFullYear(), monday.getMonth(), monday.getDate()));
+    d.setUTCDate(d.getUTCDate() + 3);
+    const weekYear = d.getUTCFullYear();
+    const firstThursday = new Date(Date.UTC(weekYear,0,4));
+    const diff = d - firstThursday;
+    const week = 1 + Math.round(diff / (7*24*60*60*1000));
+    return `${weekYear}-W${String(week).padStart(2,"0")}`;
+  };
+  const monthKeyOf = (date) => `${date.getFullYear()}-${pad2(date.getMonth()+1)}`;
+
+  const clampNumber = (v, min, max) => {
+    let x = Number(v);
+    if (!Number.isFinite(x)) x = 0;
+    if (typeof min === "number") x = Math.max(min, x);
+    if (typeof max === "number") x = Math.min(max, x);
+    return Math.trunc(x);
+  };
+
+  // storage
+  const getStore = () => {
+    try { return JSON.parse(localStorage.getItem(STORE_KEY) || "{}"); }
+    catch { return {}; }
+  };
+  const setStore = (obj) => localStorage.setItem(STORE_KEY, JSON.stringify(obj));
+
+  const defaultData = () => ({
+    currentChild: "xuan",
+    weeks: {},   // { "2026-W05": { xuan:{...}, cheng:{...} } }
+    months: {}   // { "2026-02": { xuan:{...}, cheng:{...} } }
+  });
+
+  const state = {
+    store: getStore(),
+    canEdit: false,
+    cursorMon: startOfWeek(new Date())
+  };
+
+  if (!state.store || Object.keys(state.store).length === 0){
+    state.store = defaultData();
+    setStore(state.store);
+  } else {
+    state.store = Object.assign(defaultData(), state.store);
+    state.store.weeks  = state.store.weeks  || {};
+    state.store.months = state.store.months || {};
+  }
+
+  childSelect.value = state.store.currentChild || "xuan";
+
+  const getWeekNode = (weekKey) => {
+    if (!state.store.weeks[weekKey]) state.store.weeks[weekKey] = {};
+    return state.store.weeks[weekKey];
+  };
+  const getChildWeek = (weekKey, child) => {
+    const w = getWeekNode(weekKey);
+    if (!w[child]) w[child] = {};
+    return w[child];
+  };
+
+  const getMonthNode = (monthKey) => {
+    if (!state.store.months[monthKey]) state.store.months[monthKey] = {};
+    return state.store.months[monthKey];
+  };
+  const getChildMonth = (monthKey, child) => {
+    const m = getMonthNode(monthKey);
+    if (!m[child]) m[child] = {};
+    return m[child];
+  };
+
+  const persist = () => {
+    state.store.currentChild = childSelect.value;
+    setStore(state.store);
+  };
+
+  // ----- tasks -----
+  // 月：固定基本 + 月累計項
+  const BASE_MONTHLY = 1000;
+
+  const MONTH_TASKS = [
+    // ✅ 房間髒亂次數（月累計，可多次）一天? 這裡依你說的「次數」：每次 -100（沿用舊的太亂扣分概念）
+    { id:"roomMessyTimes", type:"number", title:"房間髒亂次數（月累計）", desc:"每次 -100（可多次）", unit:"次", step:1, min:0, per:-100 },
+
+    // ✅ 你先前有「檢查房間（最多兩次）每次 +50」：我保留成月累計 0~2
+    { id:"roomCheckTimes", type:"select", title:"檢查房間（本月最多兩次）", desc:"每次 +50（0～2 次）", options:[0,1,2], unit:"次", per:50 }
+  ];
+
+  // 週：每週輸入/勾選項
+  const WEEK_TASKS = [
+    { id:"readingReflectionUpload", type:"number", title:"中學生讀書心得上傳", desc:"每篇 +200", unit:"篇", step:1, min:0, per:200 },
+    { id:"readingReflectionAward", type:"number", title:"中學生讀書心得得獎", desc:"每次 +1000", unit:"次", step:1, min:0, per:1000 },
+    { id:"newBooks", type:"number", title:"本週新書本數", desc:"每本 +100（同時影響電腦時間規則）", unit:"本", step:1, min:0, per:100 },
+    { id:"learningPortfolio", type:"number", title:"學習歷程檔案", desc:"每個 +100", unit:"個", step:1, min:0, per:100 },
+    { id:"onlineCourseCert", type:"number", title:"線上課程完成並拿到證書", desc:"每張證書 +3000", unit:"張", step:1, min:0, per:3000 },
+
+    // ✅ 新增：太晚睡覺天數（當週）一天扣50
+    { id:"sleepLateDays", type:"number", title:"太晚睡覺天數（本週）", desc:"每天 -50（0～7 天）", unit:"天", step:1, min:0, max:7, per:-50 }
+  ];
+
+  // ----- UI lock -----
+  const updateEditUI = () => {
+    editArea.classList.toggle("editLocked", !state.canEdit);
+
+    editState.textContent = state.canEdit ? "已解鎖" : "鎖定";
+    editState.style.color = state.canEdit ? "var(--ok)" : "var(--muted)";
+
+    lockHint.innerHTML = state.canEdit
+      ? `<span class="okTxt">已解鎖：</span>現在可以修改（會自動保存）。`
+      : `<span class="warnTxt">目前鎖定：</span>只能觀看。要修改請輸入密碼解鎖。`;
+
+    btnUnlock.disabled = state.canEdit;
+    btnLock.disabled = !state.canEdit;
+  };
+
+  // ----- render inputs -----
+  const makeItem = (task, value, disabled, onChange) => {
+    const el = document.createElement("div");
+    el.className = "item";
+
+    const left = document.createElement("div");
+    left.className = "left";
+
+    const title = document.createElement("div");
+    title.className = "title";
+    title.textContent = task.title;
+
+    const desc = document.createElement("div");
+    desc.className = "desc";
+    desc.textContent = task.desc;
+
+    left.appendChild(title);
+    left.appendChild(desc);
+
+    const right = document.createElement("div");
+    right.className = "right";
+
+    if (task.type === "number"){
+      const input = document.createElement("input");
+      input.type = "number";
+      input.inputMode = "numeric";
+      input.min = task.min ?? 0;
+      if (typeof task.max === "number") input.max = task.max;
+      input.step = task.step ?? 1;
+      input.value = (typeof value === "number" ? value : (value ?? 0));
+      input.style.width = "140px";
+      input.disabled = !!disabled;
+
+      input.addEventListener("input", () => {
+        const v = Number(input.value);
+        const clamped = clampNumber(v, task.min, task.max);
+        if (String(clamped) !== input.value) input.value = clamped;
+        onChange(clamped);
+      });
+
+      right.appendChild(input);
+    }
+
+    if (task.type === "select"){
+      const sel = document.createElement("select");
+      sel.style.width = "140px";
+      sel.disabled = !!disabled;
+
+      const maxOpt = Math.max(...task.options);
+      const cur = clampNumber(value ?? 0, 0, maxOpt);
+
+      for (const opt of task.options){
+        const o = document.createElement("option");
+        o.value = String(opt);
+        o.textContent = `${opt} ${task.unit || ""}`.trim();
+        if (opt === cur) o.selected = true;
+        sel.appendChild(o);
+      }
+
+      sel.addEventListener("change", () => {
+        const v = clampNumber(sel.value, 0, maxOpt);
+        onChange(v);
+      });
+
+      right.appendChild(sel);
+    }
+
+    el.appendChild(left);
+    el.appendChild(right);
+    return el;
+  };
+
+  const onMonthTaskChange = (id, value) => {
+    const child = childSelect.value;
+    const mk = monthKeyOf(state.cursorMon);
+    const node = getChildMonth(mk, child);
+    node[id] = value;
+    persist();
+    renderResults();
+  };
+
+  const onWeekTaskChange = (id, value) => {
+    const child = childSelect.value;
+    const wk = isoWeekKey(state.cursorMon);
+    const node = getChildWeek(wk, child);
+    node[id] = value;
+    persist();
+    renderResults();
+  };
+
+  const renderInputs = () => {
+    const child = childSelect.value;
+    const wk = isoWeekKey(state.cursorMon);
+    const mk = monthKeyOf(state.cursorMon);
+
+    const mon = state.cursorMon;
+    const sun = endOfWeek(mon);
+
+    monthLine.textContent = `${mk}（${child === "xuan" ? "宣" : "澄"}）`;
+    weekLine.textContent  = `${wk}（${fmt(mon)}–${fmt(sun)}）`;
+
+    const monthData = getChildMonth(mk, child);
+    const weekData  = getChildWeek(wk, child);
+
+    const disabled = !state.canEdit;
+
+    monthList.innerHTML = "";
+    for (const t of MONTH_TASKS){
+      monthList.appendChild(
+        makeItem(t, monthData[t.id], disabled, (v) => onMonthTaskChange(t.id, v))
+      );
+    }
+
+    weekList.innerHTML = "";
+    for (const t of WEEK_TASKS){
+      weekList.appendChild(
+        makeItem(t, weekData[t.id], disabled, (v) => onWeekTaskChange(t.id, v))
+      );
+    }
+  };
+
+  // ----- compute -----
+  const getWeeksInMonth = (monthKey) => {
+    // 只掃已存在的 weeks keys（效率高且簡單）
+    const keys = Object.keys(state.store.weeks || {});
+    return keys.filter(k => {
+      // 以 cursorMon 所在月份為準：用 weekKey 對應日期最麻煩
+      // 所以我們改用「遍歷該月可能涵蓋的週」：用日期推 6 週範圍，生成 wkKey，去查 store
+      // 這個函式改成由 calcMonthly 呼叫，使用日期方式更可靠（不靠解析 Wxx）
+      return true;
+    });
+  };
+
+  const calcMonthly = () => {
+    const child = childSelect.value;
+    const mk = monthKeyOf(state.cursorMon);
+
+    // 1) 基本月
+    let total = BASE_MONTHLY;
+    const lines = [{ label: "基本（每月）", amount: BASE_MONTHLY }];
+
+    // 2) 月累計項
+    const mData = getChildMonth(mk, child);
+    for (const t of MONTH_TASKS){
+      const raw = mData[t.id];
+      if (t.type === "number"){
+        const n = clampNumber(raw ?? 0, t.min ?? 0, t.max);
+        const amt = n * t.per;
+        if (n !== 0) lines.push({ label: `${t.title} × ${n}`, amount: amt });
+        total += amt;
+      }
+      if (t.type === "select"){
+        const maxOpt = Math.max(...t.options);
+        const n = clampNumber(raw ?? 0, 0, maxOpt);
+        const amt = n * t.per;
+        if (n !== 0) lines.push({ label: `${t.title} × ${n}`, amount: amt });
+        total += amt;
+      }
+    }
+
+    // 3) 該月份的所有週：累加週任務
+    // 以「月的 1 號」開始，抓 6 週（足夠涵蓋跨月週），只要該週的 Monday 或該週區間有落在本月就計入
+    const [y, m] = mk.split("-").map(Number);
+    const monthStart = new Date(y, m-1, 1);
+    const monthEnd = new Date(y, m, 0); // last day
+    const firstMon = startOfWeek(monthStart);
+
+    for (let i=0; i<6; i++){
+      const mon = new Date(firstMon);
+      mon.setDate(mon.getDate() + i*7);
+      const sun = endOfWeek(mon);
+
+      // 週區間與本月有交集才算
+      if (sun < monthStart || mon > monthEnd) continue;
+
+      const wk = isoWeekKey(mon);
+      const wData = getChildWeek(wk, child);
+
+      for (const t of WEEK_TASKS){
+        const raw = wData[t.id];
+
+        if (t.type === "number"){
+          const n = clampNumber(raw ?? 0, t.min ?? 0, t.max);
+          const amt = n * t.per;
+          if (n !== 0) lines.push({ label: `${t.title}（${wk}）× ${n}`, amount: amt });
+          total += amt;
+        }
+      }
+    }
+
+    return { monthKey: mk, child, total, lines };
+  };
+
+  const calcWeeklyPcTime = () => {
+    const child = childSelect.value;
+    const wk = isoWeekKey(state.cursorMon);
+    const wData = getChildWeek(wk, child);
+
+    const newBooks = clampNumber(wData.newBooks ?? 0, 0, undefined);
+    const pcHours = (newBooks >= 5) ? 2 : 1;
+    const pcNote = (newBooks >= 5)
+      ? `本週新書 ${newBooks} 本 ≥ 5，本週 2 小時/天`
+      : `本週新書 ${newBooks} 本（未達 5），本週 1 小時/天`;
+
+    return { weekKey: wk, pcHours, pcNote, newBooks };
+  };
+
+  // ----- render results -----
+  const renderResults = () => {
+    const childName = (childSelect.value === "xuan") ? "宣" : "澄";
+    kidBadge.textContent = `孩子：${childName}`;
+
+    const wk = isoWeekKey(state.cursorMon);
+    const mk = monthKeyOf(state.cursorMon);
+    const mon = state.cursorMon;
+    const sun = endOfWeek(mon);
+
+    const monthly = calcMonthly();
+    const weekly  = calcWeeklyPcTime();
+
+    totalMoney.textContent = `${monthly.total.toLocaleString("zh-Hant-TW")} 元`;
+    periodNote.textContent = `本月（${mk}）＝基本 1000 + 月累計 + 當月各週累加`;
+    pcTime.textContent = `${weekly.pcHours} 小時`;
+    pcRuleNote.textContent = weekly.pcNote;
+
+    linkLine.textContent = `你目前看的週次是 ${wk}（${fmt(mon)}–${fmt(sun)}），它屬於月份 ${mk}；所以「零用錢」用 ${mk} 月累計，「電腦時間」用 ${wk} 週規則。`;
+
+    // breakdown（把同名週條目很多會長，這是你要的「月累計」完整透明）
+    const wrap = document.createElement("div");
+    wrap.className = "list";
+
+    for (const line of monthly.lines){
+      const item = document.createElement("div");
+      item.className = "item";
+
+      const left = document.createElement("div");
+      left.className = "left";
+      const title = document.createElement("div");
+      title.className = "title";
+      title.textContent = line.label;
+      left.appendChild(title);
+
+      const right = document.createElement("div");
+      right.className = "right";
+      const amt = document.createElement("span");
+      amt.className = "badge mono";
+      const sign = (line.amount >= 0 ? "+" : "−");
+      amt.textContent = `${sign}${Math.abs(line.amount).toLocaleString("zh-Hant-TW")}`;
+      amt.style.borderColor = (line.amount < 0) ? "rgba(239,68,68,.30)" : "rgba(37,99,235,.22)";
+      amt.style.background = (line.amount < 0) ? "rgba(239,68,68,.12)" : "var(--chip)";
+      right.appendChild(amt);
+
+      item.appendChild(left);
+      item.appendChild(right);
+      wrap.appendChild(item);
+    }
+
+    breakdown.innerHTML = "";
+    breakdown.appendChild(wrap);
+  };
+
+  // ----- week header pills -----
+  const updateHeader = () => {
+    const mon = state.cursorMon;
+    const sun = endOfWeek(mon);
+
+    const wk = isoWeekKey(mon);
+    const mk = monthKeyOf(mon);
+
+    weekKeyBadge.textContent = wk;
+    monthKeyBadge.textContent = mk;
+    thisRange.textContent = `${fmt(mon)}–${fmt(sun)}`;
+  };
+
+  // ----- events -----
+  btnPrevWeek.addEventListener("click", () => {
+    const d = new Date(state.cursorMon);
+    d.setDate(d.getDate() - 7);
+    state.cursorMon = d;
+    updateHeader();
+    renderInputs();
+    renderResults();
+    msg.textContent = "";
+  });
+
+  btnNextWeek.addEventListener("click", () => {
+    const d = new Date(state.cursorMon);
+    d.setDate(d.getDate() + 7);
+    state.cursorMon = d;
+    updateHeader();
+    renderInputs();
+    renderResults();
+    msg.textContent = "";
+  });
+
+  childSelect.addEventListener("change", () => {
+    persist();
+    renderInputs();
+    renderResults();
+    msg.textContent = "";
+  });
+
+  btnUnlock.addEventListener("click", () => {
+    const pw = (pwInput.value || "").trim();
+    if (pw !== EDIT_PASSWORD){
+      state.canEdit = false;
+      updateEditUI();
+      renderInputs();
+      msg.innerHTML = `<span class="dangerTxt">密碼錯誤</span>（仍維持鎖定）`;
+      return;
+    }
+    state.canEdit = true;
+    pwInput.value = "";
+    updateEditUI();
+    renderInputs();
+    msg.innerHTML = `<span class="okTxt">已解鎖</span>，現在可以修改。`;
+  });
+
+  btnLock.addEventListener("click", () => {
+    state.canEdit = false;
+    updateEditUI();
+    renderInputs();
+    msg.innerHTML = `<span class="warnTxt">已鎖回去</span>（只能觀看）`;
+  });
+
+  btnCopySummary.addEventListener("click", async () => {
+    const childName = (childSelect.value === "xuan") ? "宣" : "澄";
+    const wk = isoWeekKey(state.cursorMon);
+    const mk = monthKeyOf(state.cursorMon);
+    const mon = state.cursorMon;
+    const sun = endOfWeek(mon);
+
+    const monthly = calcMonthly();
+    const weekly  = calcWeeklyPcTime();
+
+    const lines = monthly.lines
+      .map(x => `- ${x.label}：${x.amount >= 0 ? "+" : "-"}${Math.abs(x.amount)} 元`)
+      .join("\n");
+
+    const txt =
+`【零用錢（月）＋電腦時間（週）】${childName}
+月份：${mk}
+週次：${wk}（${fmt(mon)}–${fmt(sun)}）
+
+本月零用錢總計：${monthly.total} 元（基本1000 + 月累計 + 當月各週累加）
+本週電腦時間：${weekly.pcHours} 小時/天（本週新書 ${weekly.newBooks} 本）
+
+明細（本月）：
+${lines}
+`;
+
+    try{
+      await navigator.clipboard.writeText(txt);
+      msg.innerHTML = `<span class="okTxt">已複製摘要</span>到剪貼簿。`;
+      setTimeout(() => msg.textContent = "", 1500);
+    }catch{
+      msg.innerHTML = `<span class="dangerTxt">複製失敗</span>（瀏覽器限制）。`;
+    }
+  });
+
+  // init
+  updateHeader();
+  updateEditUI();
+  renderInputs();
+  renderResults();
+})();
+</script>
+</body>
+</html>
