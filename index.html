@@ -217,7 +217,7 @@
   <div class="topbar">
     <div class="brand">
       <h1>零用錢（月）＋電腦時間（週）</h1>
-      <div class="sub">切換週次會同步切到該週所屬月份：零用錢看「月累計」，電腦時間看「週規則」。(｀・ω・´)</div>
+      <div class="sub">切換週次會同步切到該週所屬月份：零用錢看「月累計」，電腦時間看「週規則」。修改需密碼 <span class="mono">6689</span> (｀・ω・´)</div>
     </div>
     <div class="pillrow">
       <div class="pill"><span>月份：</span><strong id="monthKeyBadge">-</strong></div>
@@ -233,7 +233,7 @@
       <div class="hd">
         <div>
           <h2>週次、月份與填寫</h2>
-          <div class="hint">房間髒亂＝月累計；太晚睡覺＝當週天數（一天 -50）。</div>
+          <div class="hint">房間髒亂＝月累計；睡覺（本週）：10:30前 +20／太晚 -50。</div>
         </div>
         <div class="row" style="gap:8px;">
           <button class="btn" id="btnPrevWeek" type="button">← 上一週</button>
@@ -262,7 +262,7 @@
         <div class="row">
           <div class="field" style="min-width:220px;">
             <label>編輯解鎖（輸入密碼才可修改）</label>
-            <input id="pwInput" type="password" inputmode="numeric" autocomplete="off" placeholder="輸入解鎖" />
+            <input id="pwInput" type="password" inputmode="numeric" autocomplete="off" placeholder="輸入 6689 解鎖" />
           </div>
           <div class="row" style="gap:8px;">
             <button class="btn ok" id="btnUnlock" type="button">解鎖</button>
@@ -316,12 +316,12 @@
       <div class="bd">
         <div class="kpi">
           <div class="box">
-            <div class="cap">下月零用錢（總計）</div>
+            <div class="cap">本月零用錢（總計）</div>
             <div class="val" id="totalMoney">-</div>
             <div class="fine" id="periodNote">-</div>
           </div>
           <div class="box">
-            <div class="cap">下週電腦時間（平均/天）</div>
+            <div class="cap">本週電腦時間（平均/天）</div>
             <div class="val" id="pcTime">-</div>
             <div class="fine" id="pcRuleNote">-</div>
           </div>
@@ -500,7 +500,10 @@
     { id:"onlineCourseCert", type:"number", title:"線上課程完成並拿到證書", desc:"每張證書 +3000", unit:"張", step:1, min:0, per:3000 },
 
     // ✅ 新增：太晚睡覺天數（當週）一天扣50
-    { id:"sleepLateDays", type:"number", title:"太晚睡覺天數（本週）", desc:"每天 -50（0～7 天）", unit:"天", step:1, min:0, max:7, per:-50 }
+    { id:"sleepLateDays", type:"number", title:"太晚睡覺天數（本週）", desc:"每天 -50（0～7 天）", unit:"天", step:1, min:0, max:7, per:-50 },
+
+    // ✅ 追加：10:30 前睡覺天數（本週）每天 +20
+    { id:"sleepEarlyDays", type:"number", title:"10:30 前睡覺天數（本週）", desc:"每天 +20（0～7 天）", unit:"天", step:1, min:0, max:7, per:20 }
   ];
 
   // ----- UI lock -----
